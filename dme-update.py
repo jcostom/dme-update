@@ -4,16 +4,25 @@ import hmac
 import hashlib
 import json
 import os
+import os.path
 import requests
-from time import strftime, gmtime
+import telegram
+from time import strftime, gmtime, localtime
 
 # --- To be passed in to container ---
 IPADDR_SRC = os.getenv('IPADDR_SRC', 'https://ipv4.icanhazip.com/')
+INTERVAL = os.getenv('INTERVAL', 300)
 APIKEY = os.getenv('APIKEY')
 SECRETKEY = os.getenv('SECRETKEY')
 DMEZONEID = str(os.getenv('DMEZONEID'))
 RECORDS = os.getenv('RECORDS')
 TTL = os.getenv('TTL', 1800)
+USETELEGRAM = os.getenv('USETELEGRAM', 0)
+CHATID = int(os.getenv('CHATID', 0))
+MYTOKEN = os.getenv('MYTOKEN', 'none')
+SITENAME = os.getenv('SITENAME', 'mysite')
+
+IPCACHE = "/config/ip.cache.txt"
 
 
 # --- Globals ---
@@ -26,6 +35,17 @@ myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id
 
 def getCurrentIP(ipURL):
     return requests.get(ipURL).text.rstrip('\n')
+
+
+def writeLogEntry(message, status):
+    print(strftime("[%d %b %Y %H:%M:%S %Z]",
+          localtime()) + " {}: {}".format(message, status))
+
+
+def sendNotification(msg, chat_id, token):
+    bot = telegram.Bot(token=token)
+    bot.sendMessage(chat_id=chat_id, text=msg)
+    writeLogEntry("Telegram Group Message Sent", "")
 
 
 def createHmac(msg, key):
