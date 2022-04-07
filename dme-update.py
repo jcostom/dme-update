@@ -7,7 +7,7 @@ import os
 import os.path
 import requests
 import telegram
-from time import strftime, gmtime, localtime
+from time import strftime, gmtime, localtime, sleep
 
 # --- To be passed in to container ---
 IPADDR_SRC = os.getenv('IPADDR_SRC', 'https://ipv4.icanhazip.com/')
@@ -68,8 +68,14 @@ def createDmeHeaders(apiKey, secretKey):
 
 def createDmeGetReq(url, apiKey, secretKey):
     headers = createDmeHeaders(apiKey, secretKey)
-    # print("Debug: headers=={}".format(headers))
     return requests.get(url, headers=headers)
+
+
+def getDmeDomainName(zoneID, apiKey, secretKey):
+    url = "".join(('https://api.dnsmadeeasy.com/V2.0/dns/managed/', zoneID))
+    r = createDmeGetReq(url, apiKey, secretKey)
+    # Locate and return the zone's name
+    return r.json()['name']
 
 
 def getDmeRecordID(zoneID, recordName, apiKey, secretKey):
@@ -79,7 +85,6 @@ def getDmeRecordID(zoneID, recordName, apiKey, secretKey):
          '/records?recordName=',
          recordName)
     )
-    # print("Debug: URL=={}".format(url))
     r = createDmeGetReq(url, apiKey, secretKey)
     # Locate and return the record's record ID
     return str(r.json()['data'][0]['id'])
@@ -92,7 +97,6 @@ def updateDmeRecord(zoneID, record, ip, apiKey, secretKey):
          '/records/',
          record[1])
     )
-    # print("Debug: URL=={}".format(url))
     body = {
         "name": record[0],
         "type": "A",
@@ -105,11 +109,63 @@ def updateDmeRecord(zoneID, record, ip, apiKey, secretKey):
     return requests.put(url, headers=headers, data=json.dumps(body))
 
 
-for recordName, id in myRecords.items():
-    myRecords[recordName] = getDmeRecordID(DMEZONEID, recordName, APIKEY, SECRETKEY)  # noqa E501
+def ipChanged(ip):
+    f = open(IPCACHE, "r")
+    cachedIP = f.readline()
+    f.close()
+    if cachedIP == ip:
+        return False
+    else:
+        return True
 
-myIP = getCurrentIP(IPADDR_SRC)
 
-for record in myRecords.items():
-    r = updateDmeRecord(DMEZONEID, record, myIP, APIKEY, SECRETKEY)
-    print("Debug: {}".format(r.text))
+def updateCache(ip):
+    f = open(IPCACHE, "w+")
+    f.write(ip)
+    f.close()
+
+
+def doUpdates(zoneID, records, ip, domain, apiKey, secretKey):
+    for record in records.items():
+        updateDmeRecord(zoneID, record, ip, apiKey, secretKey)
+        if USETELEGRAM == "1":
+            notificationText = "".join(
+                ["[", SITENAME, "] ", record[0],
+                 ".", domain, " changed on ",
+                 strftime("%B %d, %Y at %H:%M. New IP == "), ip]
+            )
+            sendNotification(notificationText, CHATID, MYTOKEN)
+
+
+def main():
+    myDomain = getDmeDomainName(DMEZONEID, APIKEY, SECRETKEY)
+
+    # Load dict with record IDs
+    for recordName, id in myRecords.items():
+        myRecords[recordName] = getDmeRecordID(DMEZONEID, recordName, APIKEY, SECRETKEY)  # noqa E501
+
+    while True:
+        # Grab current IP
+        myIP = getCurrentIP(IPADDR_SRC)
+
+        # check to see if cache file exists and take action
+        if os.path.exists(IPCACHE):
+            if ipChanged(myIP):
+                updateCache(myIP)
+                writeLogEntry('IP changed to', myIP)
+                # Update DNS & Check Telegram
+                doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY) # noqa E501
+            else:
+                writeLogEntry('No change in IP, no action taken', '')
+        else:
+            # No cache exists, create file
+            updateCache(myIP)
+            writeLogEntry('No cached IP, setting to', myIP)
+            # Update DNS & Check Telegram
+            doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY)
+
+        sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    main()
