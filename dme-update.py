@@ -22,15 +22,15 @@ CHATID = int(os.getenv('CHATID', 0))
 MYTOKEN = os.getenv('MYTOKEN', 'none')
 SITENAME = os.getenv('SITENAME', 'mysite')
 
-IPCACHE = "/config/ip.cache.txt"
-
-
 # --- Globals ---
 httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Breakup passed list of records, strip any spaces
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
+
+# Cache Location
+IPCACHE = "/config/ip.cache.txt"
 
 
 def getCurrentIP(ipURL):
