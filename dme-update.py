@@ -28,6 +28,8 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
+VER = 0.9
+USER_AGENT = "/".join(["dme-update.py", VER])
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
@@ -59,8 +61,9 @@ def createDmeHeaders(apiKey, secretKey):
     nowStr = strftime(httpDateString, gmtime())
     headers = {
         'Content-Type': 'application/json',
+        'User-Agent': USER_AGENT,
         'X-dnsme-apiKey': apiKey,
-        'X-dnsme-hmac': createHmac(nowStr, secretKey), # noqa E501
+        'X-dnsme-hmac': createHmac(nowStr, secretKey),
         'X-dnsme-requestDate': nowStr
     }
     return headers
