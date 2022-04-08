@@ -18,7 +18,7 @@ SECRETKEY = os.getenv('SECRETKEY')
 DMEZONEID = str(os.getenv('DMEZONEID'))
 RECORDS = os.getenv('RECORDS')
 TTL = os.getenv('TTL', 1800)
-USETELEGRAM = os.getenv('USETELEGRAM', 0)
+USETELEGRAM = int(os.getenv('USETELEGRAM', 0))
 CHATID = int(os.getenv('CHATID', 0))
 MYTOKEN = os.getenv('MYTOKEN', 'none')
 SITENAME = os.getenv('SITENAME', 'mysite')
@@ -30,7 +30,7 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.2.1'
+VER = '1.2.2'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
@@ -142,7 +142,7 @@ def updateCache(ip):
 def doUpdates(zoneID, records, ip, domain, apiKey, secretKey):
     for record in records.items():
         updateDmeRecord(zoneID, record, ip, apiKey, secretKey)
-        if USETELEGRAM == "1":
+        if USETELEGRAM:
             notificationText = "".join(
                 ["[", SITENAME, "] ", record[0],
                  ".", domain, " changed on ",
