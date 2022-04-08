@@ -21,6 +21,7 @@ USETELEGRAM = os.getenv('USETELEGRAM', 0)
 CHATID = int(os.getenv('CHATID', 0))
 MYTOKEN = os.getenv('MYTOKEN', 'none')
 SITENAME = os.getenv('SITENAME', 'mysite')
+DEBUG = int(os.getenv('DEBUG', 0))
 
 # --- Globals ---
 httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
@@ -28,7 +29,7 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.0.1'
+VER = '1.1'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location

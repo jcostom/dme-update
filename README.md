@@ -29,3 +29,5 @@ docker run -d \
 If you decide to not use Telegram for notifications, set the USETELEGRAM variable to 0, and then you can leave out the CHATID, MYTOKEN, and SITENAME variables.
 
 Creating a Telegram bot is fairly well documented at this point and is beyond the scope of this README. Have a read up on that, get your bot token, get your chat ID, and you're ready to roll.
+
+Optionally, if you're having trouble, and want to do some debugging, set the DEBUG=1 variable. As of version 1.1, you can set the variable, but it doesn't do anything, YET. I'm going to add the debugging code. I promise. Standby. Only so much time.
