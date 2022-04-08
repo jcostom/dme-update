@@ -29,7 +29,7 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.1'
+VER = '1.1.1'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
@@ -41,8 +41,8 @@ def getCurrentIP(ipURL):
 
 
 def writeLogEntry(message, status):
-    print(strftime("[%d %b %Y %H:%M:%S %Z]",
-          localtime()) + " {}: {}".format(message, status))
+    print("{} {}: {}".format(strftime("[%d %b %Y %H:%M:%S %Z]",
+                             localtime()), message, status))
 
 
 def sendNotification(msg, chat_id, token):
