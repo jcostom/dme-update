@@ -30,4 +30,4 @@ If you decide to not use Telegram for notifications, set the USETELEGRAM variabl
 
 Creating a Telegram bot is fairly well documented at this point and is beyond the scope of this README. Have a read up on that, get your bot token, get your chat ID, and you're ready to roll.
 
-Optionally, if you're having trouble, and want to do some debugging, set the DEBUG=1 variable. As of version 1.1, you can set the variable, but it doesn't do anything, YET. I'm going to add the debugging code. I promise. Standby. Only so much time.
+Optionally, if you're having trouble, and want to do some debugging, set the DEBUG=1 variable. As of version 1.2, you can set the variable, and now that I've transitioned to the Python logging module, you get decent debug logging in the standard container log output. Just look at the regular output of `docker logs container-name`.
