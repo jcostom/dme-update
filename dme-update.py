@@ -3,6 +3,7 @@
 import hmac
 import hashlib
 import json
+import logging
 import os
 import os.path
 import requests
@@ -21,6 +22,7 @@ USETELEGRAM = os.getenv('USETELEGRAM', 0)
 CHATID = int(os.getenv('CHATID', 0))
 MYTOKEN = os.getenv('MYTOKEN', 'none')
 SITENAME = os.getenv('SITENAME', 'mysite')
+DEBUG = int(os.getenv('DEBUG', 0))
 
 # --- Globals ---
 httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
@@ -33,6 +35,8 @@ USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
+
+logging.basicConfig(format='%(levelname)s %(asctime)s %(message)s', datefmt='[%d %b %Y %H:%M:%S %Z]')
 
 
 def getCurrentIP(ipURL):
@@ -47,7 +51,8 @@ def writeLogEntry(message, status):
 def sendNotification(msg, chat_id, token):
     bot = telegram.Bot(token=token)
     bot.sendMessage(chat_id=chat_id, text=msg)
-    writeLogEntry("Telegram Group Message Sent", "")
+    # writeLogEntry("Telegram Group Message Sent", "")
+    logging.info('Telegram Group Message Sent')
 
 
 def createHmac(msg, key):
@@ -154,15 +159,18 @@ def main():
         if os.path.exists(IPCACHE):
             if ipChanged(myIP):
                 updateCache(myIP)
-                writeLogEntry('IP changed to', myIP)
+                # writeLogEntry('IP changed to', myIP)
+                logging.info('IP changed to %s', myIP)
                 # Update DNS & Check Telegram
                 doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY) # noqa E501
             else:
-                writeLogEntry('No change in IP, no action taken', '')
+                # writeLogEntry('No change in IP, no action taken', '')
+                logging.info('No change in IP, no action taken')
         else:
             # No cache exists, create file
             updateCache(myIP)
-            writeLogEntry('No cached IP, setting to', myIP)
+            # writeLogEntry('No cached IP, setting to', myIP)
+            logging.info('No cached IP, setting to %s', myIP)
             # Update DNS & Check Telegram
             doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY)
 
