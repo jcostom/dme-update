@@ -11,6 +11,7 @@ You've got a sample docker-compose file in the repository already. Have a look. 
 ```bash
 docker run -d \
     --name=dme \
+    --user 1000:1000 \
     --restart=unless-stopped \
     -v /var/docks/dme:/config \
     -e APIKEY=24681357-abc3-12345-a1234-987654321 \

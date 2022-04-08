@@ -28,8 +28,8 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = 0.9
-USER_AGENT = "/".join(["dme-update.py", VER])
+VER = '1.0'
+USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
