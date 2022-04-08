@@ -5,9 +5,10 @@ import hashlib
 import json
 import os
 import os.path
+import logging
 import requests
 import telegram
-from time import strftime, gmtime, localtime, sleep
+from time import strftime, gmtime, sleep
 
 # --- To be passed in to container ---
 IPADDR_SRC = os.getenv('IPADDR_SRC', 'https://ipv4.icanhazip.com/')
@@ -29,26 +30,36 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.1.1'
+VER = '1.2'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
+
+# Setup logger
+logger = logging.getLogger()
+ch = logging.StreamHandler()
+if DEBUG:
+    logger.setLevel(logging.DEBUG)
+    ch.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+    ch.setLevel(logging.INFO)
+
+formatter = logging.Formatter('[%(levelname)s] %(asctime)s %(message)s',
+                              datefmt='[%d %b %Y %H:%M:%S %Z]')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def getCurrentIP(ipURL):
     return requests.get(ipURL).text.rstrip('\n')
 
 
-def writeLogEntry(message, status):
-    print("{} {}: {}".format(strftime("[%d %b %Y %H:%M:%S %Z]",
-                             localtime()), message, status))
-
-
 def sendNotification(msg, chat_id, token):
     bot = telegram.Bot(token=token)
     bot.sendMessage(chat_id=chat_id, text=msg)
-    writeLogEntry("Telegram Group Message Sent", "")
+    logger.info('Telegram Group Message Sent')
 
 
 def createHmac(msg, key):
@@ -155,15 +166,15 @@ def main():
         if os.path.exists(IPCACHE):
             if ipChanged(myIP):
                 updateCache(myIP)
-                writeLogEntry('IP changed to', myIP)
+                logger.info("IP changed to {}".format(myIP))
                 # Update DNS & Check Telegram
                 doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY) # noqa E501
             else:
-                writeLogEntry('No change in IP, no action taken', '')
+                logger.info('No change in IP, no action taken.')
         else:
             # No cache exists, create file
             updateCache(myIP)
-            writeLogEntry('No cached IP, setting to', myIP)
+            logger.info("No cached IP, setting to {}".format(myIP))
             # Update DNS & Check Telegram
             doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY)
 
