@@ -28,7 +28,7 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.0'
+VER = '1.0.1'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
@@ -113,19 +113,18 @@ def updateDmeRecord(zoneID, record, ip, apiKey, secretKey):
 
 
 def ipChanged(ip):
-    f = open(IPCACHE, "r")
-    cachedIP = f.readline()
-    f.close()
-    if cachedIP == ip:
-        return False
-    else:
-        return True
+    with open(IPCACHE, "r") as f:
+        cachedIP = f.read()
+        if cachedIP == ip:
+            return False
+        else:
+            return True
 
 
 def updateCache(ip):
-    f = open(IPCACHE, "w+")
-    f.write(ip)
-    f.close()
+    with open(IPCACHE, "w+") as f:
+        f.write(ip)
+    return 0
 
 
 def doUpdates(zoneID, records, ip, domain, apiKey, secretKey):
