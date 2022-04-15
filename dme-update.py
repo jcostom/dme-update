@@ -30,7 +30,7 @@ httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.2.2'
+VER = '1.3'
 USER_AGENT = "/".join(['dme-update.py', VER])
 
 # Cache Location
@@ -166,7 +166,7 @@ def main():
         if os.path.exists(IPCACHE):
             if ipChanged(myIP):
                 updateCache(myIP)
-                logger.info("IP changed to {}".format(myIP))
+                logger.info(f"IP changed to {myIP}")
                 # Update DNS & Check Telegram
                 doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY) # noqa E501
             else:
@@ -174,7 +174,7 @@ def main():
         else:
             # No cache exists, create file
             updateCache(myIP)
-            logger.info("No cached IP, setting to {}".format(myIP))
+            logger.info(f"No cached IP, setting to {myIP}")
             # Update DNS & Check Telegram
             doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY)
 
