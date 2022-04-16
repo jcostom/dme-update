@@ -30,7 +30,7 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # Setup dict to be populated to map recordName
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.5'
+VER = '1.5.1'
 USER_AGENT = f"dme-update.py{VER}"
 
 # Cache Location
@@ -132,8 +132,8 @@ def update_cache(ip: str) -> int:
     return 0
 
 
-def send_updates(zone_id: str, records: dict, ip: str, domain: str, api_key,
-                 secret_key) -> None:
+def send_updates(zone_id: str, records: dict, ip: str, domain: str,
+                 api_key: str, secret_key: str) -> None:
     for record in records.items():
         update_dme_record(zone_id, record, ip, api_key, secret_key)
         if USETELEGRAM:
