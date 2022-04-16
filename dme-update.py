@@ -25,13 +25,13 @@ SITENAME = os.getenv('SITENAME', 'mysite')
 DEBUG = int(os.getenv('DEBUG', 0))
 
 # --- Globals ---
-httpDateString = '%a, %d %b %Y %H:%M:%S GMT'
+HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # Breakup passed list of records, strip any spaces
 # Setup dict to be populated to map recordName
 # DME's record ID value.
-myRecords = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
-VER = '1.3'
-USER_AGENT = "/".join(['dme-update.py', VER])
+my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
+VER = '1.5'
+USER_AGENT = f"dme-update.py{VER}"
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
@@ -52,66 +52,59 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def getCurrentIP(ipURL):
-    return requests.get(ipURL).text.rstrip('\n')
+def get_current_ip(ip_url: str) -> str:
+    return requests.get(ip_url).text.rstrip('\n')
 
 
-def sendNotification(msg, chat_id, token):
+def send_notification(msg: str, chat_id: int, token: str) -> None:
     bot = telegram.Bot(token=token)
     bot.sendMessage(chat_id=chat_id, text=msg)
     logger.info('Telegram Group Message Sent')
 
 
-def createHmac(msg, key):
+def createHmac(msg: str, key: str) -> str:
     key = bytes(key, 'UTF-8')
     msg = bytes(msg, 'UTF-8')
     digester = hmac.new(key, msg, hashlib.sha1)
     return digester.hexdigest()
 
 
-def createDmeHeaders(apiKey, secretKey):
-    nowStr = strftime(httpDateString, gmtime())
+def create_dme_headers(api_key: str, secret_key: str) -> dict:
+    now_str = strftime(HTTP_DATE_STRING, gmtime())
     headers = {
         'Content-Type': 'application/json',
         'User-Agent': USER_AGENT,
-        'X-dnsme-apiKey': apiKey,
-        'X-dnsme-hmac': createHmac(nowStr, secretKey),
-        'X-dnsme-requestDate': nowStr
+        'X-dnsme-apiKey': api_key,
+        'X-dnsme-hmac': createHmac(now_str, secret_key),
+        'X-dnsme-requestDate': now_str
     }
     return headers
 
 
-def createDmeGetReq(url, apiKey, secretKey):
-    headers = createDmeHeaders(apiKey, secretKey)
+def create_dme_get_req(url: str, api_key: str,
+                       secret_key: str) -> requests.Response:
+    headers = create_dme_headers(api_key, secret_key)
     return requests.get(url, headers=headers)
 
 
-def getDmeDomainName(zoneID, apiKey, secretKey):
-    url = "".join(('https://api.dnsmadeeasy.com/V2.0/dns/managed/', zoneID))
-    r = createDmeGetReq(url, apiKey, secretKey)
+def get_dme_domain_name(zone_id: str, api_key: str, secret_key: str) -> str:
+    url = f"https://api.dnsmadeeasy.com/V2.0/dns/managed/{zone_id}"
+    r = create_dme_get_req(url, api_key, secret_key)
     # Locate and return the zone's name
     return r.json()['name']
 
 
-def getDmeRecordID(zoneID, recordName, apiKey, secretKey):
-    url = "".join(
-        ('https://api.dnsmadeeasy.com/V2.0/dns/managed/',
-         zoneID,
-         '/records?recordName=',
-         recordName)
-    )
-    r = createDmeGetReq(url, apiKey, secretKey)
+def get_dme_record_id(zone_id: str, record_name: str, api_key: str,
+                      secret_key: str) -> str:
+    url = f"https://api.dnsmadeeasy.com/V2.0/dns/managed/{zone_id}/records?recordName={record_name}"  # noqa: E501
+    r = create_dme_get_req(url, api_key, secret_key)
     # Locate and return the record's record ID
     return str(r.json()['data'][0]['id'])
 
 
-def updateDmeRecord(zoneID, record, ip, apiKey, secretKey):
-    url = "".join(
-        ('https://api.dnsmadeeasy.com/V2.0/dns/managed/',
-         zoneID,
-         '/records/',
-         record[1])
-    )
+def update_dme_record(zone_id: str, record: list, ip: str, api_key: str,
+                      secret_key: str) -> requests.Response:
+    url = f"https://api.dnsmadeeasy.com/V2.0/dns/managed/{zone_id}/records/{record[0]}"  # noqa: E501
     body = {
         "name": record[0],
         "type": "A",
@@ -120,63 +113,64 @@ def updateDmeRecord(zoneID, record, ip, apiKey, secretKey):
         "gtdLocation": "DEFAULT",
         "ttl": TTL
     }
-    headers = headers = createDmeHeaders(apiKey, secretKey)
+    headers = create_dme_headers(api_key, secret_key)
     return requests.put(url, headers=headers, data=json.dumps(body))
 
 
-def ipChanged(ip):
+def ip_changed(ip: str) -> bool:
     with open(IPCACHE, "r") as f:
-        cachedIP = f.read()
-        if cachedIP == ip:
+        cached_ip = f.read()
+        if cached_ip == ip:
             return False
         else:
             return True
 
 
-def updateCache(ip):
+def update_cache(ip: str) -> int:
     with open(IPCACHE, "w+") as f:
         f.write(ip)
     return 0
 
 
-def doUpdates(zoneID, records, ip, domain, apiKey, secretKey):
+def send_updates(zone_id: str, records: dict, ip: str, domain: str, api_key,
+                 secret_key) -> None:
     for record in records.items():
-        updateDmeRecord(zoneID, record, ip, apiKey, secretKey)
+        update_dme_record(zone_id, record, ip, api_key, secret_key)
         if USETELEGRAM:
-            notificationText = "".join(
+            notification_text = "".join(
                 ["[", SITENAME, "] ", record[0],
                  ".", domain, " changed on ",
                  strftime("%B %d, %Y at %H:%M. New IP == "), ip]
             )
-            sendNotification(notificationText, CHATID, MYTOKEN)
+            send_notification(notification_text, CHATID, MYTOKEN)
 
 
 def main():
-    myDomain = getDmeDomainName(DMEZONEID, APIKEY, SECRETKEY)
+    my_domain = get_dme_domain_name(DMEZONEID, APIKEY, SECRETKEY)
 
     # Load dict with record IDs
-    for recordName, id in myRecords.items():
-        myRecords[recordName] = getDmeRecordID(DMEZONEID, recordName, APIKEY, SECRETKEY)  # noqa E501
+    for record_name, id in my_records.items():
+        my_records[record_name] = get_dme_record_id(DMEZONEID, record_name, APIKEY, SECRETKEY)  # noqa E501
 
     while True:
         # Grab current IP
-        myIP = getCurrentIP(IPADDR_SRC)
+        current_ip = get_current_ip(IPADDR_SRC)
 
         # check to see if cache file exists and take action
         if os.path.exists(IPCACHE):
-            if ipChanged(myIP):
-                updateCache(myIP)
-                logger.info(f"IP changed to {myIP}")
+            if ip_changed(current_ip):
+                update_cache(current_ip)
+                logger.info(f"IP changed to {current_ip}")
                 # Update DNS & Check Telegram
-                doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY) # noqa E501
+                send_updates(DMEZONEID, my_records, current_ip, my_domain, APIKEY, SECRETKEY)  # noqa E501
             else:
                 logger.info('No change in IP, no action taken.')
         else:
             # No cache exists, create file
-            updateCache(myIP)
-            logger.info(f"No cached IP, setting to {myIP}")
+            update_cache(current_ip)
+            logger.info(f"No cached IP, setting to {current_ip}")
             # Update DNS & Check Telegram
-            doUpdates(DMEZONEID, myRecords, myIP, myDomain, APIKEY, SECRETKEY)
+            send_updates(DMEZONEID, my_records, current_ip, my_domain, APIKEY, SECRETKEY)  # noqa E501
 
         sleep(INTERVAL)
 
