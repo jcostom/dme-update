@@ -31,7 +31,7 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.6.1'
+VER = '1.7'
 USER_AGENT = f"dme-update.py{VER}"
 
 # Cache Location
@@ -105,7 +105,7 @@ def get_dme_record_id(zone_id: str, record_name: str, api_key: str,
 
 def update_dme_record(zone_id: str, record: list, ip: str, api_key: str,
                       secret_key: str) -> requests.Response:
-    url = f"https://api.dnsmadeeasy.com/V2.0/dns/managed/{zone_id}/records/{record[0]}"  # noqa: E501
+    url = f"https://api.dnsmadeeasy.com/V2.0/dns/managed/{zone_id}/records/{record[1]}"  # noqa: E501
     body = {
         "name": record[0],
         "type": "A",
