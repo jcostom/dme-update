@@ -31,8 +31,8 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.7'
-USER_AGENT = f"dme-update.py{VER}"
+VER = '1.8'
+USER_AGENT = f"dme-update.py/{VER}"
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
@@ -146,7 +146,7 @@ def send_updates(zone_id: str, records: dict, ip: str, domain: str,
             send_notification(notification_text, CHATID, MYTOKEN)
 
 
-def main():
+def main() -> None:
     my_domain = get_dme_domain_name(DMEZONEID, APIKEY, SECRETKEY)
 
     # Load dict with record IDs
