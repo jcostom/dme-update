@@ -11,6 +11,7 @@ import telegram
 from time import strftime, gmtime, sleep
 
 # --- To be passed in to container ---
+# Required Vars
 IPADDR_SRC = os.getenv('IPADDR_SRC', 'https://ipv4.icanhazip.com/')
 INTERVAL = os.getenv('INTERVAL', 300)
 APIKEY = os.getenv('APIKEY')
@@ -18,6 +19,8 @@ SECRETKEY = os.getenv('SECRETKEY')
 DMEZONEID = str(os.getenv('DMEZONEID'))
 RECORDS = os.getenv('RECORDS')
 TTL = os.getenv('TTL', 1800)
+
+# Optional Vars
 USETELEGRAM = int(os.getenv('USETELEGRAM', 0))
 CHATID = int(os.getenv('CHATID', 0))
 MYTOKEN = os.getenv('MYTOKEN', 'none')
@@ -31,7 +34,7 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.8'
+VER = '1.8.1'
 USER_AGENT = f"dme-update.py/{VER}"
 
 # Cache Location
@@ -138,11 +141,8 @@ def send_updates(zone_id: str, records: dict, ip: str, domain: str,
     for record in records.items():
         update_dme_record(zone_id, record, ip, api_key, secret_key)
         if USETELEGRAM:
-            notification_text = "".join(
-                ["[", SITENAME, "] ", record[0],
-                 ".", domain, " changed on ",
-                 strftime("%B %d, %Y at %H:%M. New IP == "), ip]
-            )
+            now = strftime("%B %d, %Y at %H:%M")
+            notification_text = f"[{SITENAME}] {record[0]}.{domain} changed on {now}. New IP == {ip}."  # noqa E501
             send_notification(notification_text, CHATID, MYTOKEN)
 
 
