@@ -34,7 +34,7 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.8.2'
+VER = '1.8.3'
 USER_AGENT = f"dme-update.py/{VER}"
 
 # Cache Location
