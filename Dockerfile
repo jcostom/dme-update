@@ -6,7 +6,7 @@ VOLUME "/config"
 
 RUN \
     pip install requests \
-    && pip install python-telegram-bot \
+    && pip install python-telegram-bot==13.15 \
     && pip cache purge
 
 RUN mkdir /app
