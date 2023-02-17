@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import hmac
 import hashlib
 import json
@@ -34,7 +35,7 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.8.6'
+VER = '1.9'
 USER_AGENT = f"dme-update.py/{VER}"
 
 # Cache Location
@@ -60,9 +61,9 @@ def get_current_ip(ip_url: str) -> str:
     return requests.get(ip_url).text.rstrip('\n')
 
 
-def send_notification(msg: str, chat_id: int, token: str) -> None:
+async def send_notification(msg: str, chat_id: int, token: str) -> None:
     bot = telegram.Bot(token=token)
-    bot.sendMessage(chat_id=chat_id, text=msg)
+    await bot.send_message(chat_id=chat_id, text=msg)
     logger.info('Telegram Group Message Sent')
 
 
@@ -143,7 +144,7 @@ def send_updates(zone_id: str, records: dict, ip: str, domain: str,
         if USETELEGRAM:
             now = strftime("%B %d, %Y at %H:%M")
             notification_text = f"[{SITENAME}] {record[0]}.{domain} changed on {now}. New IP == {ip}."  # noqa E501
-            send_notification(notification_text, CHATID, MYTOKEN)
+            asyncio.run(send_notification(notification_text, CHATID, MYTOKEN))
 
 
 def main() -> None:
