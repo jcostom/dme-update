@@ -2,6 +2,8 @@
 
 ## Python-based DNS Made Easy Updater in Docker Container
 
+**Please Note**: I'm not planning on updating this container any longer. Its functionality has been merged into another tool I built that handles DDNS updates for Cloudflare, DNS Made Easy, or DNS-O-Matic. You can find that one at [jcostom/ddnsup](https://github.com/jcostom/ddnsup).
+
 So, for the past many years, I've been leveraging DNS-o-Matic for doing multiplexing DDNS updates over a handful of things, including updating a couple of A records inside DNS Made Easy. Over the years, DNS-o-Matic has had a handful of flake-outs on me. Over the past year, that number has increased. To the point where it's grown to be annoying. I'm not sure if I'm just "special" or if others see it too, but sometimes, my updates just go off into la-la land.
 
 So, it was enough to get me to read up on DNS Made Easy's API, and write my very own updater, and here we are. Lots of code from the jcostom/dnsomatic-update project got forklifted straight into this.
