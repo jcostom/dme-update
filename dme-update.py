@@ -35,26 +35,18 @@ HTTP_DATE_STRING = '%a, %d %b %Y %H:%M:%S GMT'
 # DME's record ID value.
 my_records = dict.fromkeys([record.strip() for record in RECORDS.split(',')], 'id')  # noqa E501
 
-VER = '1.11.1'
+VER = '1.12'
 USER_AGENT = f"dme-update.py/{VER}"
 
 # Cache Location
 IPCACHE = "/config/ip.cache.txt"
 
 # Setup logger
+LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
+logging.basicConfig(level=LOG_LEVEL,
+                    format='[%(levelname)s] %(asctime)s %(message)s',
+                    datefmt='[%d %b %Y %H:%M:%S %Z]')
 logger = logging.getLogger()
-ch = logging.StreamHandler()
-if DEBUG:
-    logger.setLevel(logging.DEBUG)
-    ch.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
-    ch.setLevel(logging.INFO)
-
-formatter = logging.Formatter('[%(levelname)s] %(asctime)s %(message)s',
-                              datefmt='[%d %b %Y %H:%M:%S %Z]')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 
 def get_current_ip(ip_url: str) -> str:
